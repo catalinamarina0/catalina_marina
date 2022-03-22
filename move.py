@@ -1,8 +1,18 @@
 def left():
     return "a"
+"""
+def down():
+    return "s"
+
+def right():
+    return "d"
+
+def up():
+    return "w"
+"""
 
 def down():
-    return "O"
+    return "o"
 
 def right():
     return "e"

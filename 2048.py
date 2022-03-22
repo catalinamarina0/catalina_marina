@@ -37,19 +37,19 @@ def turnPlayer():
 def turnResolve(state,turn):
     if turn == move.left():
         left(state)
-        mergeHorizontal(state)
+        mergeLeft(state)
         left(state)
-    elif turn == "e":
+    elif turn == move.right():
         right(state)
-        mergeHorizontal(state)
+        mergeRight(state)
         right(state)
-    elif turn == ",":
+    elif turn == move.up():
         up(state)
-        mergeVertical(state)
+        mergeUp(state)
         up(state)
-    elif turn == "o":
+    elif turn == move.down():
         down(state)
-        mergeVertical(state)
+        mergeDown(state)
         down(state)
 
 def left(state):
@@ -93,7 +93,7 @@ def down(state):
                 state[0][w] = 0
 
 #merge moet uitgesplitst worden
-def mergeHorizontal(state):
+def mergeLeft(state):
     height = len(state)
     width = len(state[0])
     for h in range(height):
@@ -102,7 +102,16 @@ def mergeHorizontal(state):
                 state[h][w] += state[h][w+1]
                 state[h][w+1] = 0
 
-def mergeVertical(state):
+def mergeRight(state):
+    height = len(state)
+    width = len(state[0])
+    for h in range(height):
+        for w in range(width-1):
+            if mergeRules(state[h][width-1-w],state[h][width-w-2]):
+                state[h][width-w-2] += state[h][width-1-w]
+                state[h][width-1-w] = 0
+
+def mergeLeft(state):
     height = len(state)
     width = len(state[0])
     for w in range(width):
@@ -110,6 +119,15 @@ def mergeVertical(state):
             if mergeRules(state[h][w],state[h+1][w]):
                 state[h][w] += state[h+1][w]
                 state[h+1][w] = 0
+
+def mergeDown(state):
+    height = len(state)
+    width = len(state[0])
+    for w in range(width):
+        for h in range(height-1):
+            if mergeRules(state[height-1-h][w],state[height-h-2][w]):
+                state[height-h-2][w] += state[height-1-h][w]
+                state[height-1-h][w] = 0
 
 #outdated
 def printState(state):
@@ -168,9 +186,11 @@ def mergeRules(m1,m2):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("mode",help = "Options: double, ratio")
     parser.add_argument("height",type = int,help = "The height of your playing field.")
     parser.add_argument("width",type = int,help = "The width of your playing field. Warning: The game grows wider as numbers get bigger. If width is too wide for your window, this wil break the visuals.")
     size = parser.parse_args()
+    mode = size.mode
     height = size.height
     width = size.width
 
