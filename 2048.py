@@ -1,7 +1,9 @@
 import random
 import copy
-import move
 import argparse
+import sys
+import move
+import modes
 
 def initialState(height,width):
     state1d = []
@@ -32,6 +34,8 @@ def turnPC(state,newNumbers):
     
 def turnPlayer():
     turn = input()
+    if turn == "exit":
+        sys.exit()
     return turn
     
 def turnResolve(state,turn):
@@ -98,7 +102,7 @@ def mergeLeft(state):
     width = len(state[0])
     for h in range(height):
         for w in range(width-1):
-            if mergeRules(state[h][w],state[h][w+1]):
+            if modes.mergeRules(state[h][w],state[h][w+1]):
                 state[h][w] += state[h][w+1]
                 state[h][w+1] = 0
 
@@ -107,16 +111,16 @@ def mergeRight(state):
     width = len(state[0])
     for h in range(height):
         for w in range(width-1):
-            if mergeRules(state[h][width-1-w],state[h][width-w-2]):
-                state[h][width-w-2] += state[h][width-1-w]
-                state[h][width-1-w] = 0
+            if modes.mergeRules(state[h][width-1-w],state[h][width-w-2]):
+                state[h][width-1-w] += state[h][width-w-2]
+                state[h][width-w-2] = 0
 
-def mergeLeft(state):
+def mergeUp(state):
     height = len(state)
     width = len(state[0])
     for w in range(width):
         for h in range(height-1):
-            if mergeRules(state[h][w],state[h+1][w]):
+            if modes.mergeRules(state[h][w],state[h+1][w]):
                 state[h][w] += state[h+1][w]
                 state[h+1][w] = 0
 
@@ -125,9 +129,9 @@ def mergeDown(state):
     width = len(state[0])
     for w in range(width):
         for h in range(height-1):
-            if mergeRules(state[height-1-h][w],state[height-h-2][w]):
-                state[height-h-2][w] += state[height-1-h][w]
-                state[height-1-h][w] = 0
+            if modes.mergeRules(state[height-1-h][w],state[height-h-2][w]):
+                state[height-1-h][w] += state[height-h-2][w]
+                state[height-h-2][w] = 0
 
 #outdated
 def printState(state):
@@ -177,7 +181,7 @@ def play(state,newNumbers):
 
 
 
-def mergeRules(m1,m2):
+def mergeRulesBREAK(m1,m2):
     if m1 != 0 and m1 == m2:                    #double
 #    if m1 != 0 and m1 < 2*m2 and m2 < 2*m1:     #ratio
         return True
@@ -193,8 +197,10 @@ def main():
     mode = size.mode
     height = size.height
     width = size.width
-
-    newNumbers = {2,4}
+    modeFile = open("mode.txt","w")
+    modeFile.write(mode)
+    modeFile.close()
+    newNumbers = modes.newNumbers(mode)
     state = initialState(height,width)
     play(state,newNumbers)
 
