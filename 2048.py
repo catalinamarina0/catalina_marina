@@ -5,13 +5,16 @@ import sys
 import move
 import modes
 
-def initialState(height,width):
+def initialState(height,width,depth):
     state1d = []
     for w in range(width):
         state1d.append(0)
-    state = []
+    state2d = []
     for h in range(height):
-        state.append(state1d.copy())
+        state2d.append(state1d.copy())
+    state = []
+    for d in range(depth):
+        state.append(copy.deepcopy(state2d))
     return state
 
 def randomEmptyField(state):
@@ -172,36 +175,33 @@ def printStateStr(state):
 
 def play(state,newNumbers):
     while True:
-        turnPC(state,newNumbers)
-        printStateStr(state)
+        for d in range(len(state)):
+            turnPC(state[d],newNumbers)
+            printStateStr(state[d])
         stateCheck = copy.deepcopy(state)
         while stateCheck == state:
             turn = turnPlayer()
-            turnResolve(state,turn)
+            for d in range(len(state)):
+                turnResolve(state[d],turn)
 
 
-
-def mergeRulesBREAK(m1,m2):
-    if m1 != 0 and m1 == m2:                    #double
-#    if m1 != 0 and m1 < 2*m2 and m2 < 2*m1:     #ratio
-        return True
-    else:
-        return False
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode",help = "Options: double, ratio")
+    parser.add_argument("mode",help = "Options: classic, ratio")
     parser.add_argument("height",type = int,help = "The height of your playing field.")
     parser.add_argument("width",type = int,help = "The width of your playing field. Warning: The game grows wider as numbers get bigger. If width is too wide for your window, this wil break the visuals.")
+    parser.add_argument("depth",type = int,help = "Depth or number of copies.")
     size = parser.parse_args()
     mode = size.mode
     height = size.height
     width = size.width
+    depth = size.depth
     modeFile = open("mode.txt","w")
     modeFile.write(mode)
     modeFile.close()
     newNumbers = modes.newNumbers(mode)
-    state = initialState(height,width)
+    state = initialState(height,width,depth)
     play(state,newNumbers)
 
 
