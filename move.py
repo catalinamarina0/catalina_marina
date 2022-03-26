@@ -9,6 +9,12 @@ def right():
 
 def up():
     return "w"
+
+def front():
+    return "r"
+
+def back():
+    return "f"
 """
 
 def down():
@@ -19,3 +25,13 @@ def right():
 
 def up():
     return ","
+
+def front():
+    return "p"
+
+def back():
+    return "u"
+
+def controls(dimensions):
+    print("Controls are:",up()+left()+down()+right())
+    print("             ",front()+back())

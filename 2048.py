@@ -17,7 +17,7 @@ def initialState(height,width,depth):
         state.append(copy.deepcopy(state2d))
     return state
 
-def randomEmptyField(state):
+def randomEmptyField2d(state):
     emptyfields = []
     for h in range(len(state)):
         for w in range(len(state[0])):
@@ -25,15 +25,31 @@ def randomEmptyField(state):
                 emptyfields.append((h,w))
     return random.choice(emptyfields)
 
+def randomEmptyField3d(state):
+    emptyfields = []
+    for d in range(len(state)):
+        for h in range(len(state[0])):
+            for w in range(len(state[0][0])):
+                if state[d][h][w] == 0:
+                    emptyfields.append((h,w,d))
+    return random.choice(emptyfields)
+
 def randomNumber(newNumbers):
     return random.choice(list(newNumbers))
 
-def turnPC(state,newNumbers):
-    newNumberAt = randomEmptyField(state)
-    h = newNumberAt[0]
-    w = newNumberAt[1]
+def turnPC(state,newNumbers,dimensions):
     newNumber = randomNumber(newNumbers)
-    state[h][w] = newNumber
+    if dimensions == 3:
+        newNumberAt = randomEmptyField3d(state)
+        d = newNumberAt[2]
+        h = newNumberAt[0]
+        w = newNumberAt[1]
+        state[d][h][w] = newNumber
+    elif dimensions < 3:
+        newNumberAt = randomEmptyField2d(state)
+        h = newNumberAt[0]
+        w = newNumberAt[1]
+        state[h][w] = newNumber
     
 def turnPlayer():
     turn = input()
@@ -41,23 +57,42 @@ def turnPlayer():
         sys.exit()
     return turn
     
-def turnResolve(state,turn):
+def turnResolve(state,turn,dimensions):
     if turn == move.left():
-        left(state)
-        mergeLeft(state)
-        left(state)
+        for d in range(len(state)):
+            left(state[d])
+            mergeLeft(state[d])
+            left(state[d])
     elif turn == move.right():
-        right(state)
-        mergeRight(state)
-        right(state)
+        for d in range(len(state)):
+            right(state[d])
+            mergeRight(state[d])
+            right(state[d])
     elif turn == move.up():
-        up(state)
-        mergeUp(state)
-        up(state)
+        for d in range(len(state)):
+            up(state[d])
+            mergeUp(state[d])
+            up(state[d])
     elif turn == move.down():
-        down(state)
-        mergeDown(state)
-        down(state)
+        for d in range(len(state)):
+            down(state[d])
+            mergeDown(state[d])
+            down(state[d])
+    elif dimensions < 3:
+        move.controls(dimensions)
+        return
+    elif turn == move.front():
+        for d in range(len(state)):
+            front(state)
+            mergeFront(state)
+            front(state)
+    elif turn == move.back():
+        for d in range(len(state)):
+            back(state)
+            mergeBack(state)
+            back(state)
+    else:
+        move.controls(dimensions)
 
 def left(state):
     height = len(state)
@@ -99,7 +134,30 @@ def down(state):
                     state[h-hh][w] = state[h-hh-1][w]
                 state[0][w] = 0
 
-#merge moet uitgesplitst worden
+def front(state):
+    depth = len(state)
+    height = len(state[0])
+    width = len(state[0][0])
+    for h in range(height):
+        for w in range(width):
+            for d in range(depth-1):
+                if state[depth-2-d][h][w] == 0:
+                    for dd in range(depth-2-d,depth-1):
+                        state[dd][h][w] = state[dd+1][h][w]
+                    state[depth-1][h][w] = 0
+
+def back(state):
+    depth = len(state)
+    height = len(state[0])
+    width = len (state[0][0])
+    for h in range(height):
+        for w in range(width):
+            for d in range(1,depth):
+                if state[d][h][w] == 0:
+                    for dd in range(d):
+                        state[d-dd][h][w] = state[d-dd-1][h][w]
+                    state[0][h][w] = 0
+
 def mergeLeft(state):
     height = len(state)
     width = len(state[0])
@@ -136,10 +194,27 @@ def mergeDown(state):
                 state[height-1-h][w] += state[height-h-2][w]
                 state[height-h-2][w] = 0
 
-#outdated
-def printState(state):
-    for h in range(len(state)):
-        print(state[h])
+def mergeFront(state):
+    depth = len(state)
+    height = len(state[0])
+    width = len(state[0][0]) 
+    for h in range(height):
+        for w in range(width):
+            for d in range(depth-1):
+                if modes.mergeRules(state[d][h][w],state[d+1][h][w]):
+                    state[d][h][w] += state[d+1][h][w]
+                    state[d+1][h][w] = 0
+
+def mergeBack(state):
+    depth = len(state)
+    height = len(state[0])
+    width = len(state[0][0])
+    for h in range(height):
+        for w in range(width):
+            for d in range(depth-1):
+                if modes.mergeRules(state[depth-1-d][h][w],state[depth-d-2][h][w]):
+                    state[depth-1-d][h][w] += state[depth-d-2][h][w]
+                    state[depth-d-2][h][w] = 0
 
 
 def printStateStr(state):
@@ -173,16 +248,19 @@ def printStateStr(state):
     print("---")                        #onderrand
 
 
-def play(state,newNumbers):
+def play(state,newNumbers,dimensions):
     while True:
+        if dimensions == 3:
+            turnPC(state,newNumbers,dimensions)
+        else:
+            for d in range(len(state)):
+                turnPC(state[d],newNumbers,dimensions)
         for d in range(len(state)):
-            turnPC(state[d],newNumbers)
             printStateStr(state[d])
         stateCheck = copy.deepcopy(state)
         while stateCheck == state:
             turn = turnPlayer()
-            for d in range(len(state)):
-                turnResolve(state[d],turn)
+            turnResolve(state,turn,dimensions)
 
 
 
@@ -200,9 +278,12 @@ def main():
     modeFile = open("mode.txt","w")
     modeFile.write(mode)
     modeFile.close()
+    dimensionsFile = open("dimensions.txt","r")
+    dimensions = int(dimensionsFile.read())
+    dimensionsFile.close()
     newNumbers = modes.newNumbers(mode)
     state = initialState(height,width,depth)
-    play(state,newNumbers)
+    play(state,newNumbers,dimensions)
 
 
 if __name__ == "__main__":
